@@ -49,6 +49,9 @@ def root():
     xbmcplugin.addDirectoryItem(
         plugin.handle, plugin.url_for(login),
         ListItem('Login'), True)
+    xbmcplugin.addDirectoryItem(
+        plugin.handle, plugin.url_for(logout),
+        ListItem('Logout'), True)
     xbmcplugin.endOfDirectory(plugin.handle)
 
 
@@ -88,6 +91,13 @@ def login():
                 addon.setSetting('session_id', wimp.session_id)
                 addon.setSetting('country_code', wimp.country_code)
                 addon.setSetting('user_id', wimp.user.id)
+
+
+@plugin.route('logout')
+def logout():
+    addon.setSetting('session_id', '')
+    addon.setSetting('country_code', '')
+    addon.setSetting('user_id', '')
 
 
 @plugin.route('/play/<track_id>')
