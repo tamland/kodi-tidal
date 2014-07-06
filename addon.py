@@ -23,8 +23,10 @@ from lib import wimpy
 from routing import Plugin
 
 addon = xbmcaddon.Addon()
-session_id = addon.getSetting('last_session_id')
-wimp = wimpy.Session(session_id, 'NO')
+session_id = addon.getSetting('session_id')
+country_code = addon.getSetting('country_code') or 'NO'
+user_id = addon.getSetting('user_id')
+wimp = wimpy.Session(session_id, country_code, user_id)
 plugin = Plugin()
 
 
@@ -83,7 +85,9 @@ def login():
         password = dialog.input('Password')
         if password:
             if wimp.login(username, password):
-                addon.setSetting('last_session_id', wimp.session_id)
+                addon.setSetting('session_id', wimp.session_id)
+                addon.setSetting('country_code', wimp.country_code)
+                addon.setSetting('user_id', wimp.user.id)
 
 
 @plugin.route('/play/<track_id>')
