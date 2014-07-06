@@ -58,15 +58,35 @@ def view(data_items, urls):
     xbmcplugin.endOfDirectory(plugin.handle)
 
 
+def add_directory(title, view_func):
+    xbmcplugin.addDirectoryItem(
+        plugin.handle, plugin.url_for(view_func), ListItem(title), True)
+
 @plugin.route('/')
 def root():
-    xbmcplugin.addDirectoryItem(
-        plugin.handle, plugin.url_for(search),
-        ListItem('Search'), True)
-    xbmcplugin.addDirectoryItem(
-        plugin.handle, plugin.url_for(logout),
-        ListItem('Logout'), True)
+    add_directory('My music', my_music)
+    add_directory('New', not_implemented)
+    add_directory('Recommended', not_implemented)
+    add_directory('Top', not_implemented)
+    add_directory('Playlist Browser', not_implemented)
+    add_directory('Genre Browser', not_implemented)
+    add_directory('Search', search)
+    add_directory('Logout', logout)
     xbmcplugin.endOfDirectory(plugin.handle)
+
+
+@plugin.route('/my_music')
+def my_music():
+    add_directory('Playlists', not_implemented)
+    add_directory('Favourite Artists', not_implemented)
+    add_directory('Favourite Albums', not_implemented)
+    add_directory('Favourite Songs', not_implemented)
+    xbmcplugin.endOfDirectory(plugin.handle)
+
+
+@plugin.route('/not_implemented')
+def not_implemented():
+    raise NotImplementedError()
 
 
 @plugin.route('/album/<album_id>')
