@@ -32,12 +32,6 @@ class Plugin(object):
         self.addon_id = self._addon.getAddonInfo('id')
         self.path = self._addon.getAddonInfo('path')
 
-    def get_setting(self, key):
-        return self._addon.getSetting(id=key)
-
-    def set_setting(self, key, val):
-        self._addon.getSetting
-
     def build_url(self, path):
         return 'plugin://%s%s' % (self.addon_id, path)
 
