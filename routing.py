@@ -16,6 +16,9 @@ import re
 import sys
 import xbmc, xbmcaddon
 
+log = lambda msg: xbmc.log("[routing] %s" % msg, level=xbmc.LOGDEBUG)
+
+
 class Plugin(object):
   def __init__(self):
     self._routes = []
@@ -69,6 +72,7 @@ class Plugin(object):
     for rule in self._routes:
       view_func, kwargs = rule.match(path)
       if view_func:
+        log("dispatching to <%s>" % view_func.__name__)
         view_func(**kwargs)
         return
     raise Exception('no route for path')
