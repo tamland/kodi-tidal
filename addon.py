@@ -27,6 +27,23 @@ session_id = addon.getSetting('session_id')
 country_code = addon.getSetting('country_code') or 'NO'
 user_id = addon.getSetting('user_id')
 wimp = wimpy.Session(session_id, country_code, user_id)
+
+def login():
+    dialog = xbmcgui.Dialog()
+    username = dialog.input('Username')
+    if username:
+        password = dialog.input('Password')
+        if password:
+            if wimp.login(username, password):
+                addon.setSetting('session_id', wimp.session_id)
+                addon.setSetting('country_code', wimp.country_code)
+                addon.setSetting('user_id', unicode(wimp.user.id))
+                return
+    raise Exception('failed to login')
+
+if not session_id:
+    login()
+
 plugin = Plugin()
 
 
@@ -46,9 +63,6 @@ def root():
     xbmcplugin.addDirectoryItem(
         plugin.handle, plugin.url_for(search),
         ListItem('Search'), True)
-    xbmcplugin.addDirectoryItem(
-        plugin.handle, plugin.url_for(login),
-        ListItem('Login'), True)
     xbmcplugin.addDirectoryItem(
         plugin.handle, plugin.url_for(logout),
         ListItem('Logout'), True)
@@ -78,19 +92,6 @@ def search():
         artist = wimp.search('artists', query)
         urls = [plugin.url_for(artist_view, artist_id=a.id) for a in artist]
         view(artist, urls)
-
-
-@plugin.route('/login')
-def login():
-    dialog = xbmcgui.Dialog()
-    username = dialog.input('Username')
-    if username:
-        password = dialog.input('Password')
-        if password:
-            if wimp.login(username, password):
-                addon.setSetting('session_id', wimp.session_id)
-                addon.setSetting('country_code', wimp.country_code)
-                addon.setSetting('user_id', wimp.user.id)
 
 
 @plugin.route('/logout')
