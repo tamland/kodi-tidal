@@ -93,7 +93,7 @@ def login():
                 addon.setSetting('user_id', wimp.user.id)
 
 
-@plugin.route('logout')
+@plugin.route('/logout')
 def logout():
     addon.setSetting('session_id', '')
     addon.setSetting('country_code', '')
