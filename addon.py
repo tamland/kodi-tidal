@@ -62,6 +62,11 @@ def add_directory(title, view_func):
     xbmcplugin.addDirectoryItem(
         plugin.handle, plugin.url_for(view_func), ListItem(title), True)
 
+
+def urls_from_id(view_func, items):
+    return [plugin.url_for(view_func, item.id) for item in items]
+
+
 @plugin.route('/')
 def root():
     add_directory('My music', my_music)
@@ -91,16 +96,14 @@ def not_implemented():
 
 @plugin.route('/album/<album_id>')
 def album_view(album_id):
-    tracks = wimp.get_album(album_id)
-    urls = [plugin.url_for(play, track_id=t.id) for t in tracks]
-    view(tracks, urls)
+    tracks = wimp.get_album_tracks(album_id)
+    view(tracks, urls_from_id(play, tracks))
 
 
 @plugin.route('/artist/<artist_id>')
 def artist_view(artist_id):
-    albums = wimp.get_albums(artist_id)
-    urls = [plugin.url_for(album_view, album_id=a.id) for a in albums]
-    view(albums, urls)
+    albums = wimp.get_artist_albums(artist_id)
+    view(albums, urls_from_id(album_view, albums))
 
 
 @plugin.route('/search')
@@ -110,8 +113,7 @@ def search():
     query = keyboard.getText()
     if query:
         artist = wimp.search('artists', query)
-        urls = [plugin.url_for(artist_view, artist_id=a.id) for a in artist]
-        view(artist, urls)
+        view(artist, urls_from_id(artist_view, artist))
 
 
 @plugin.route('/logout')
