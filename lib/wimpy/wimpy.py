@@ -18,24 +18,21 @@
 from __future__ import unicode_literals
 import json
 import logging
-from collections import namedtuple
 import requests
 from .compat import urljoin
+from .models import Artist, Album, Track, User, Playlist
 
 log = logging.getLogger(__name__)
-
-Artist = namedtuple('Artist', ['name', 'id'])
-Track = namedtuple('Track', ['name', 'id'])
-Album = namedtuple('Album', ['name', 'id'])
 
 
 class Session(object):
     api_location = 'https://play.wimpmusic.com/v1/'
     api_token = 'rQtt0XAsYjXYIlml'
 
-    def __init__(self, session_id='', country_code='NO'):
+    def __init__(self, session_id='', country_code='NO', user_id=None):
         self.session_id = session_id
         self.country_code = country_code
+        self.user = User(self, id=user_id) if user_id else None
 
     def login(self, username, password):
         url = urljoin(self.api_location, 'login/username')
@@ -49,35 +46,100 @@ class Session(object):
         body = r.json()
         self.session_id = body['sessionId']
         self.country_code = body['countryCode']
+        self.user = User(self, id=body['userId'])
         return True
 
-    def _request(self, path, **params):
+    def _request(self, path, params=None):
         common_params = {
             'sessionId': self.session_id,
             'countryCode': self.country_code,
         }
+        params = dict(common_params, **params) if params else common_params
         url = urljoin(self.api_location, path)
-        r = requests.get(url, params=dict(common_params, **params))
+        r = requests.get(url, params=params)
         log.debug("request: %s" % r.request.url)
         r.raise_for_status()
         json_obj = r.json()
         log.debug("response: %s" % json.dumps(json_obj, indent=4))
         return json_obj
 
+    def get_user(self, user_id):
+        return self._map_request('users/%s' % user_id, ret='user')
+
+    def get_user_playlists(self, user_id):
+        return self._map_request('users/%s/playlists' % user_id, ret='playlists')
+
+    def get_favorite_artists(self, user_id):
+        return self._map_request('users/%s/favorites/artists' % user_id, ret='artists')
+
+    def get_favorite_albums(self, user_id):
+        return self._map_request('users/%s/favorites/albums' % user_id, ret='albums')
+
+    def get_favorite_tracks(self, user_id):
+        json_obj = self._request('users/%s/favorites/tracks' % user_id)
+        return [_parse_track(item['item']) for item in json_obj['items']]
+
+    def get_playlist(self, playlist_id):
+        return self._map_request('playlists/%s' % playlist_id, ret='playlist')
+
+    def get_playlist_tracks(self, playlist_id):
+        return self._map_request('playlists/%s/tracks' % playlist_id, ret='tracks')
+
     def get_album(self, album_id):
-        json_obj = self._request('albums/%s/tracks' % album_id)
-        items = json_obj['items']
-        return [Track(item['title'], item['id']) for item in items]
+        return self._map_request('albums/%s' % album_id, ret='album')
+
+    def get_album_tracks(self, album_id):
+        return self._map_request('albums/%s/tracks' % album_id, ret='tracks')
+
+    def get_artist(self, artist_id):
+        return self._map_request('artists/%s' % artist_id, ret='artist')
+
+    def get_artist_albums(self, artist_id):
+        return self._map_request('artists/%s/albums' % artist_id, ret='albums')
+
+    def get_artist_albums_ep_singles(self, artist_id):
+        params = {'filter': 'EPSANDSINGLES'}
+        return self._map_request('artists/%s/albums' % artist_id, params, ret='albums')
+
+    def get_artist_albums_other(self, artist_id):
+        params = {'filter': 'COMPILATIONS'}
+        return self._map_request('artists/%s/albums' % artist_id, params, ret='albums')
+
+    def get_artist_top_tracks(self, artist_id):
+        return self._map_request('artists/%s/toptracks' % artist_id, ret='tracks')
+
+    def get_artist_bio(self, artist_id):
+        return self._request('artists/%s/bio' % artist_id)['text']
+
+    def get_artist_similar(self, artist_id):
+        return self._map_request('artists/%s/similar' % artist_id, ret='artists')
+
+    def get_artist_radio(self, artist_id):
+        return self._map_request('artists/%s/radio' % artist_id, ret='tracks')
+
+    def _map_request(self, url, params=None, ret=None):
+        json_obj = self._request(url, params)
+        parse = None
+        if ret.startswith('artist'):
+            parse = _parse_artist
+        elif ret.startswith('album'):
+            parse = _parse_album
+        elif ret.startswith('track'):
+            parse = _parse_track
+        elif ret.startswith('user'):
+            raise NotImplementedError()
+        elif ret.startswith('playlist'):
+            parse = _parse_playlist
+
+        items = json_obj.get('items')
+        if items is None:
+            return parse(json_obj)
+        return list(map(parse, items))
 
     def get_media_url(self, track_id):
         params = {'soundQuality': 'HIGH'}
-        json_obj = self._request('tracks/%s/streamUrl' % track_id, **params)
+        json_obj = self._request('tracks/%s/streamUrl' % track_id, params)
         return json_obj['url']
-
-    def get_albums(self, artist_id):
-        params = {'filter': 'COMPILATIONS'}
-        json_obj = self._request('artists/%s/albums' % artist_id, **params)
-        return [Album(item['title'], item['id']) for item in json_obj['items']]
 
     def search(self, ret, query):
         params = {
@@ -85,6 +147,51 @@ class Session(object):
             'limit': 25,
         }
         if ret == 'artists':
-            json_obj = self._request('search/artists', **params)
-            return [Artist(item['name'], item['id']) for item in json_obj['items']]
+            json_obj = self._request('search/artists', params)
+            return list(map(_parse_artist, json_obj['items']))
         return None
+
+
+def _parse_artist(json_obj):
+    return Artist(id=json_obj['id'], name=json_obj['name'])
+
+
+def _parse_album(json_obj, artist=None):
+    if artist is None:
+        artist = _parse_artist(json_obj['artist'])
+    kwargs = {
+        'id': json_obj['id'],
+        'name': json_obj['title'],
+        'num_tracks': json_obj.get('numberOfTracks'),
+        'duration': json_obj.get('duration'),
+        'artist': artist,
+    }
+    return Album(**kwargs)
+
+
+def _parse_playlist(json_obj):
+    kwargs = {
+        'id': json_obj['uuid'],
+        'name': json_obj['title'],
+        'description': json_obj['description'],
+        'num_tracks': int(json_obj['numberOfTracks']),
+        'duration': int(json_obj['duration']),
+        'is_public': json_obj['publicPlaylist'],
+        #TODO 'creator': _parse_user(json_obj['creator']),
+    }
+    return Playlist(**kwargs)
+
+
+def _parse_track(json_obj):
+    artist = _parse_artist(json_obj['artist'])
+    album = _parse_album(json_obj['album'], artist)
+    kwargs = {
+        'id': json_obj['id'],
+        'name': json_obj['title'],
+        'duration': json_obj['duration'],
+        'track_num': json_obj['trackNumber'],
+        'popularity': json_obj['popularity'],
+        'artist': artist,
+        'album': album
+    }
+    return Track(**kwargs)
