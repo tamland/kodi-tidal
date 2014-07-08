@@ -45,10 +45,10 @@ class Plugin(object):
                 return view_func
         raise Exception('route_for: no route for path <%s>' % path)
 
-    def url_for(self, func, **kwargs):
+    def url_for(self, func, *args, **kwargs):
         for rule in self._routes:
             if rule._view_func is func:
-                path = rule.make_path(**kwargs)
+                path = rule.make_path(*args, **kwargs)
                 url = self.build_url(path)
                 return url
         return None
@@ -81,6 +81,7 @@ class UrlRule(object):
 
     def __init__(self, url_rule, view_func):
         self._view_func = view_func
+        # convert "/foo/<string:bar>" to "/foo/{bar}"
         self._url_format = re.sub('<(?:[^:]+:)?([A-z]+)>', '{\\1}', url_rule)
 
         p = re.sub('<([A-z]+)>', '<string:\\1>', url_rule)
@@ -95,5 +96,10 @@ class UrlRule(object):
             return False, None
         return self._view_func, m.groupdict()
 
-    def make_path(self, **kwargs):
+    def make_path(self, *args, **kwargs):
+        if args and kwargs:
+            raise ValueError("can't use both args and kwargs")
+        if args:
+            uf = re.sub(r'{[A-z]+}', r'{}', self._url_format)
+            return uf.format(*args)
         return self._url_format.format(**kwargs)
