@@ -82,10 +82,10 @@ def root():
 
 @plugin.route('/my_music')
 def my_music():
-    add_directory('Playlists', not_implemented)
-    add_directory('Favourite Artists', not_implemented)
-    add_directory('Favourite Albums', not_implemented)
-    add_directory('Favourite Songs', not_implemented)
+    add_directory('Playlists', my_playlists)
+    add_directory('Favourite Artists', favourite_artists)
+    add_directory('Favourite Albums', favourite_albums)
+    add_directory('Favourite Tracks', favourite_tracks)
     xbmcplugin.endOfDirectory(plugin.handle)
 
 
@@ -104,6 +104,36 @@ def album_view(album_id):
 def artist_view(artist_id):
     albums = wimp.get_artist_albums(artist_id)
     view(albums, urls_from_id(album_view, albums))
+
+
+@plugin.route('/playlist/<playlist_id>')
+def playlist_view(playlist_id):
+    tracks = wimp.get_playlist_tracks(playlist_id)
+    view(tracks, urls_from_id(play, tracks))
+
+
+@plugin.route('/user_playlists')
+def my_playlists():
+    items = wimp.user.playlists
+    view(items, urls_from_id(playlist_view, items))
+
+
+@plugin.route('/favourite_artists')
+def favourite_artists():
+    items = wimp.user.favourite_artist
+    view(items, urls_from_id(artist_view, items))
+
+
+@plugin.route('/favourite_albums')
+def favourite_albums():
+    items = wimp.user.favourite_albums
+    view(items, urls_from_id(album_view, items))
+
+
+@plugin.route('/favourite_tracks')
+def favourite_tracks():
+    items = wimp.user.favourite_tracks
+    view(items, urls_from_id(play, items))
 
 
 @plugin.route('/search')
