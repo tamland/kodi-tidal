@@ -52,6 +52,8 @@ def view(data_items, urls):
     for item, url in zip(data_items, urls):
         li = ListItem(item.name)
         playable = plugin.route_for(url) is play
+        if playable:
+            li.setProperty('isplayable', 'true')
         li.setInfo('audio', {'title': '', 'plot': ''})
         list_items.append((url, li, not playable))
     xbmcplugin.addDirectoryItems(plugin.handle, list_items)
@@ -155,15 +157,11 @@ def logout():
 
 @plugin.route('/play/<track_id>')
 def play(track_id):
-    url = wimp.get_media_url(track_id)
-    li = ListItem('')
-    li.setProperty('mimetype', 'audio/mp4')
-
-    #TODO: paplayer fails to play these streams, investigate
-    player = xbmc.Player(xbmc.PLAYER_CORE_DVDPLAYER)
-    player.play(url)
-    while player.isPlaying:
-        xbmc.sleep(1000)
+    media_url = wimp.get_media_url(track_id)
+    host, app, playpath = media_url.split('/', 3)
+    rtmp_url = 'rtmp://%s app=%s playpath=%s' % (host, app, playpath)
+    li = ListItem('', path=rtmp_url)
+    xbmcplugin.setResolvedUrl(plugin.handle, True, li)
 
 
 if __name__ == '__main__':
