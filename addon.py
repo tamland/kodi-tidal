@@ -120,7 +120,7 @@ def my_playlists():
 
 @plugin.route('/favourite_artists')
 def favourite_artists():
-    items = wimp.user.favourite_artist
+    items = wimp.user.favourite_artists
     view(items, urls_from_id(artist_view, items))
 
 
