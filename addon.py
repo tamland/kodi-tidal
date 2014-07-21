@@ -54,7 +54,6 @@ def view(data_items, urls):
         playable = plugin.route_for(url) is play
         if playable:
             li.setProperty('isplayable', 'true')
-        li.setInfo('audio', {'title': '', 'plot': ''})
         list_items.append((url, li, not playable))
     xbmcplugin.addDirectoryItems(plugin.handle, list_items)
     xbmcplugin.endOfDirectory(plugin.handle)
