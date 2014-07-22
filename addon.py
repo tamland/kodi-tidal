@@ -62,6 +62,7 @@ def view(data_items, urls):
 
 def track_list(tracks):
     xbmcplugin.setContent(plugin.handle, 'songs')
+    xbmcplugin.addSortMethod(plugin.handle, xbmcplugin.SORT_METHOD_TRACKNUM)
     list_items = []
     for track in tracks:
         url = plugin.url_for(play, track_id=track.id)
