@@ -206,7 +206,7 @@ def play(track_id):
     media_url = wimp.get_media_url(track_id)
     host, app, playpath = media_url.split('/', 3)
     rtmp_url = 'rtmp://%s app=%s playpath=%s' % (host, app, playpath)
-    li = ListItem('', path=rtmp_url)
+    li = ListItem(path=rtmp_url)
     xbmcplugin.setResolvedUrl(plugin.handle, True, li)
 
 
