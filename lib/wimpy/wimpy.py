@@ -53,6 +53,7 @@ class Session(object):
         common_params = {
             'sessionId': self.session_id,
             'countryCode': self.country_code,
+            'limit': '9999',
         }
         params = dict(common_params, **params) if params else common_params
         url = urljoin(self.api_location, path)
@@ -134,7 +135,10 @@ class Session(object):
         items = json_obj.get('items')
         if items is None:
             return parse(json_obj)
-        return list(map(parse, items))
+        elif len(items) > 0 and 'item' in items[0]:
+            return list(map(parse, [item['item'] for item in items]))
+        else:
+            return list(map(parse, items))
 
     def get_media_url(self, track_id):
         params = {'soundQuality': 'HIGH'}

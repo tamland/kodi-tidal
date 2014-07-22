@@ -17,6 +17,8 @@
 
 from __future__ import unicode_literals
 
+IMG_URL = "http://images.osl.wimpmusic.com/im/im?w={width}&h={height}&{id_type}={id}"
+
 class Immutable(object):
     id = None
     name = None
@@ -30,13 +32,21 @@ class Immutable(object):
 
 
 class Album(Immutable):
+
     artist = None
     num_tracks = -1
     duration = -1
 
+    @property
+    def image(self, width=512, height=512):
+        return IMG_URL.format(width=width, height=height, id=self.id, id_type='albumid')
+
 
 class Artist(Immutable):
-    pass
+
+    @property
+    def image(self, width=512, height=512):
+        return IMG_URL.format(width=width, height=height, id=self.id, id_type='artistid')
 
 
 class Playlist(Immutable):
@@ -49,6 +59,11 @@ class Playlist(Immutable):
     num_tracks = -1
     duration = -1
 
+    @property
+    def image(self, width=512, height=512):
+        return IMG_URL.format(width=width, height=height, id=self.id, id_type='uuid')
+
+
 
 class Track(Immutable):
     duration = -1
@@ -56,21 +71,6 @@ class Track(Immutable):
     popularity = -1
     artist = None
     album = None
-
-    # @staticmethod
-    # def from_response(json_obj):
-    #     artist = Artist.from_response(json_obj['artist'])
-    #     album = Album.from_response(json_obj['album'], artist)
-    #     kwargs = {
-    #         'id': json_obj['id'],
-    #         'name': json_obj['title'],
-    #         'duration': json_obj['duration'],
-    #         'track_num': json_obj['trackNumber'],
-    #         'popularity': json_obj['popularity'],
-    #         'artist': artist,
-    #         'album': album
-    #     }
-    #     return Track(**kwargs)
 
 
 class User(object):
@@ -88,7 +88,7 @@ class User(object):
         return self._session.get_user_playlists(self.id)
 
     @property
-    def favourite_artist(self):
+    def favourite_artists(self):
         return self._session.get_favorite_artists(self.id)
 
     @property
