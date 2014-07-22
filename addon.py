@@ -122,10 +122,20 @@ def album_view(album_id):
 
 @plugin.route('/artist/<artist_id>')
 def artist_view(artist_id):
+    xbmcplugin.addDirectoryItem(plugin.handle,
+                                plugin.url_for(artist_radio, artist_id),
+                                ListItem('Artist Radio'), True)
+
     albums = wimp.get_artist_albums(artist_id) + \
              wimp.get_artist_albums_ep_singles(artist_id) + \
              wimp.get_artist_albums_other(artist_id)
     view(albums, urls_from_id(album_view, albums))
+
+
+@plugin.route('/artist_radio/<artist_id>')
+def artist_radio(artist_id):
+    tracks = wimp.get_artist_radio(artist_id)
+    add_tracks(tracks)
 
 
 @plugin.route('/playlist/<playlist_id>')
