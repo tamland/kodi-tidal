@@ -60,7 +60,7 @@ def view(data_items, urls):
     xbmcplugin.endOfDirectory(plugin.handle)
 
 
-def add_tracks(tracks):
+def track_list(tracks):
     xbmcplugin.setContent(plugin.handle, 'songs')
     list_items = []
     for track in tracks:
@@ -117,8 +117,7 @@ def not_implemented():
 
 @plugin.route('/album/<album_id>')
 def album_view(album_id):
-    tracks = wimp.get_album_tracks(album_id)
-    add_tracks(tracks)
+    track_list(wimp.get_album_tracks(album_id))
 
 
 @plugin.route('/artist/<artist_id>')
@@ -143,14 +142,12 @@ def artist_view(artist_id):
 
 @plugin.route('/artist/<artist_id>/radio')
 def artist_radio(artist_id):
-    tracks = wimp.get_artist_radio(artist_id)
-    add_tracks(tracks)
+    track_list(wimp.get_artist_radio(artist_id))
 
 
 @plugin.route('/artist/<artist_id>/top')
 def top_tracks(artist_id):
-    tracks = wimp.get_artist_top_tracks(artist_id)
-    add_tracks(tracks)
+    track_list(wimp.get_artist_top_tracks(artist_id))
 
 
 @plugin.route('/artist/<artist_id>/similar')
@@ -161,8 +158,7 @@ def similar_artists(artist_id):
 
 @plugin.route('/playlist/<playlist_id>')
 def playlist_view(playlist_id):
-    tracks = wimp.get_playlist_tracks(playlist_id)
-    add_tracks(tracks)
+    track_list(wimp.get_playlist_tracks(playlist_id))
 
 
 @plugin.route('/user_playlists')
@@ -185,8 +181,7 @@ def favourite_albums():
 
 @plugin.route('/favourite_tracks')
 def favourite_tracks():
-    items = wimp.user.favourite_tracks
-    add_tracks(items)
+    track_list(wimp.user.favourite_tracks)
 
 
 @plugin.route('/search')
