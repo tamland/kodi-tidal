@@ -131,6 +131,10 @@ def artist_view(artist_id):
         plugin.handle, plugin.url_for(artist_radio, artist_id),
         ListItem('Artist Radio'), True
     )
+    xbmcplugin.addDirectoryItem(
+        plugin.handle, plugin.url_for(similar_artists, artist_id),
+        ListItem('Similar Artists'), True
+    )
     albums = wimp.get_artist_albums(artist_id) + \
              wimp.get_artist_albums_ep_singles(artist_id) + \
              wimp.get_artist_albums_other(artist_id)
@@ -147,6 +151,12 @@ def artist_radio(artist_id):
 def top_tracks(artist_id):
     tracks = wimp.get_artist_top_tracks(artist_id)
     add_tracks(tracks)
+
+
+@plugin.route('/artist/<artist_id>/similar')
+def similar_artists(artist_id):
+    artists = wimp.get_artist_similar(artist_id)
+    view(artists, urls_from_id(artist_view, artists))
 
 
 @plugin.route('/playlist/<playlist_id>')
