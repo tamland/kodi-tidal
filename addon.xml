@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<addon id="plugin.audio.wimp" name="WiMP Music" version="0.0.1" provider-name="takoi">
+<addon id="plugin.audio.wimp" name="WiMP" version="0.0.1" provider-name="takoi">
     <requires>
         <import addon="xbmc.python" version="2.14.0"/>
         <import addon="script.module.requests2" version="2.2.1"/>
@@ -8,12 +8,13 @@
         <provides>audio</provides>
     </extension>
     <extension point="xbmc.addon.metadata">
-        <platform>all</platform>
-        <language>no</language>
-        <summary lang="en">TODO</summary>
-        <description lang="en">TODO</description>
+        <summary lang="en">WiMP music add-on</summary>
+        <description lang="en">Play music from WiMP music streaming service. Requires account.</description>
+        <disclaimer lang="en">This is an unofficial client and is not supported nor endorsed by WiMP.</disclaimer>
         <license>GNU GENERAL PUBLIC LICENSE. Version 3, 29 June 2007</license>
-        <forum>TODO</forum>
-        <source>TODO</source>
+        <platform>all</platform>
+        <language></language>
+        <forum></forum>
+        <source></source>
     </extension>
 </addon>
