@@ -19,21 +19,26 @@ import re
 import sys
 import xbmc
 import xbmcaddon
+from urlparse import parse_qs
+from urllib import urlencode
 
-log = lambda msg: xbmc.log("[routing] %s" % msg, level=xbmc.LOGDEBUG)
+
+_addon = xbmcaddon.Addon()
+_addon_id = _addon.getAddonInfo('id')
+
+_log_tag = "[%s][routing] " % _addon_id
+log = lambda msg: xbmc.log(_log_tag + msg, level=xbmc.LOGDEBUG)
 
 
 class Plugin(object):
 
     def __init__(self):
         self._routes = []
-        self._addon = xbmcaddon.Addon()
+        self._addon = _addon
         self.handle = int(sys.argv[1])
-        self.addon_id = self._addon.getAddonInfo('id')
+        self.addon_id = _addon_id
         self.path = self._addon.getAddonInfo('path')
-
-    def build_url(self, path):
-        return 'plugin://%s%s' % (self.addon_id, path)
+        self.args = None
 
     def route_for(self, path):
         uri_self = 'plugin://%s' % self.addon_id
@@ -49,9 +54,13 @@ class Plugin(object):
         for rule in self._routes:
             if rule._view_func is func:
                 path = rule.make_path(*args, **kwargs)
-                url = self.build_url(path)
-                return url
+                return self.url_for_path(path)
         return None
+
+    def url_for_path(self, path):
+        if not path.startswith('/'):
+            path = '/' + path
+        return 'plugin://%s%s' % (self.addon_id, path)
 
     def route(self, url_rule):
         def decorator(f):
@@ -61,6 +70,7 @@ class Plugin(object):
         return decorator
 
     def run(self):
+        self.args = parse_qs(sys.argv[2].lstrip('?'))
         path = sys.argv[0].split('plugin://%s' % self.addon_id)[1] or '/'
         self._dispatch(path)
 
@@ -71,18 +81,20 @@ class Plugin(object):
         for rule in self._routes:
             view_func, kwargs = rule.match(path)
             if view_func:
-                log("dispatching to <%s>" % view_func.__name__)
+                log("dispatching to <%s>, args: %s" % (view_func.__name__, kwargs))
                 view_func(**kwargs)
                 return
-        raise Exception('no route for path')
+        raise Exception('no route for path "%s"' % path)
 
 
 class UrlRule(object):
 
     def __init__(self, url_rule, view_func):
         self._view_func = view_func
-        # convert "/foo/<string:bar>" to "/foo/{bar}"
-        self._url_format = re.sub('<(?:[^:]+:)?([A-z]+)>', '{\\1}', url_rule)
+
+        kw_pattern = r'<(?:[^:]+:)?([A-z]+)>'
+        self._url_format = re.sub(kw_pattern, '{\\1}', url_rule)
+        self._keywords = re.findall(kw_pattern, url_rule)
 
         p = re.sub('<([A-z]+)>', '<string:\\1>', url_rule)
         p = re.sub('<string:([A-z]+)>', '(?P<\\1>[^/]+?)', p)
@@ -100,6 +112,8 @@ class UrlRule(object):
         if args and kwargs:
             raise ValueError("can't use both args and kwargs")
         if args:
-            uf = re.sub(r'{[A-z]+}', r'{}', self._url_format)
-            return uf.format(*args)
-        return self._url_format.format(**kwargs)
+            return re.sub(r'{[A-z]+}', r'%s', self._url_format) % args
+
+        url_args = dict(((k, v) for k, v in kwargs.items() if k in self._keywords))
+        qs_args = dict(((k, v) for k, v in kwargs.items() if k not in self._keywords))
+        return self._url_format.format(**url_args) + '?' + urlencode(qs_args)
