@@ -173,26 +173,19 @@ def favourite_tracks():
 
 @plugin.route('/search')
 def search():
-    d = xbmcgui.Dialog()
-
+    dialog = xbmcgui.Dialog()
     fields = ['artist', 'album', 'playlist', 'track']
     names = ['Artists', 'Albums', 'Playlists', 'Tracks']
-    idx = d.select('Search for', names)
+    idx = dialog.select('Search for', names)
     if idx != -1:
         field = fields[idx]
-
-        keyboard = xbmc.Keyboard(heading='Search')
-        keyboard.doModal()
-        query = keyboard.getText()
+        query = dialog.input('Search')
         if query:
             res = wimp.search(field, query)
-
             view(res.artists, urls_from_id(artist_view, res.artists), end=False)
             view(res.albums, urls_from_id(album_view, res.albums), end=False)
             view(res.playlists, urls_from_id(playlist_view, res.playlists), end=False)
             track_list(res.tracks)
-
-
 
 
 @plugin.route('/login')
