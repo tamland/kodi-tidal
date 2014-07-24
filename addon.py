@@ -22,13 +22,13 @@ from xbmcgui import ListItem
 from lib import wimpy
 from routing import Plugin
 
-addon = xbmcaddon.Addon()
-session_id = addon.getSetting('session_id')
-country_code = addon.getSetting('country_code')
-user_id = addon.getSetting('user_id')
-wimp = wimpy.Session(session_id, country_code, user_id)
-
 plugin = Plugin()
+addon = xbmcaddon.Addon()
+wimp = wimpy.Session(
+    session_id=addon.getSetting('session_id'),
+    country_code=addon.getSetting('country_code'),
+    user_id=addon.getSetting('user_id')
+)
 
 
 def view(data_items, urls):
