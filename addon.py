@@ -31,7 +31,7 @@ wimp = wimpy.Session(
 )
 
 
-def view(data_items, urls):
+def view(data_items, urls, end=True):
     list_items = []
     for item, url in zip(data_items, urls):
         li = ListItem(item.name)
@@ -41,7 +41,8 @@ def view(data_items, urls):
         li.setThumbnailImage(item.image)
         list_items.append((url, li, not playable))
     xbmcplugin.addDirectoryItems(plugin.handle, list_items)
-    xbmcplugin.endOfDirectory(plugin.handle)
+    if end:
+        xbmcplugin.endOfDirectory(plugin.handle)
 
 
 def track_list(tracks):
