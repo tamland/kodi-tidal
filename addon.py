@@ -77,11 +77,6 @@ def urls_from_id(view_func, items):
 @plugin.route('/')
 def root():
     add_directory('My music', my_music)
-    add_directory('New', not_implemented)
-    add_directory('Recommended', not_implemented)
-    add_directory('Top', not_implemented)
-    add_directory('Playlist Browser', not_implemented)
-    add_directory('Genre Browser', not_implemented)
     add_directory('Search', search)
     add_directory('Login', login)
     add_directory('Logout', logout)
