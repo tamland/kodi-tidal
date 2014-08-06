@@ -151,19 +151,19 @@ def my_playlists():
 
 @plugin.route('/favourite_artists')
 def favourite_artists():
-    items = wimp.user.favourite_artists
+    items = wimp.user.favorites.artists()
     view(items, urls_from_id(artist_view, items))
 
 
 @plugin.route('/favourite_albums')
 def favourite_albums():
-    items = wimp.user.favourite_albums
+    items = wimp.user.favorites.albums()
     view(items, urls_from_id(album_view, items))
 
 
 @plugin.route('/favourite_tracks')
 def favourite_tracks():
-    track_list(wimp.user.favourite_tracks)
+    track_list(wimp.user.favorites.tracks())
 
 
 @plugin.route('/search')
