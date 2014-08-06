@@ -35,11 +35,8 @@ def view(data_items, urls, end=True):
     list_items = []
     for item, url in zip(data_items, urls):
         li = ListItem(item.name)
-        playable = plugin.route_for(url) is play
-        if playable:
-            li.setProperty('isplayable', 'true')
         li.setThumbnailImage(item.image)
-        list_items.append((url, li, not playable))
+        list_items.append((url, li, True))
     xbmcplugin.addDirectoryItems(plugin.handle, list_items)
     if end:
         xbmcplugin.endOfDirectory(plugin.handle)
