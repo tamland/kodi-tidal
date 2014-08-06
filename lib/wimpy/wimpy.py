@@ -20,7 +20,7 @@ import json
 import logging
 import requests
 from .compat import urljoin
-from .models import Artist, Album, Track, User, Playlist, SearchResult
+from .models import Artist, Album, Track, Playlist, SearchResult
 
 log = logging.getLogger(__name__)
 
@@ -49,7 +49,14 @@ class Session(object):
         self.user = User(self, id=body['userId'])
         return True
 
-    def _request(self, path, params=None):
+    def check_login(self):
+        """ Returns true if current session is valid, false otherwise. """
+        if self.user is None or not self.user.id or not self.session_id:
+            return False
+        url = urljoin(self.api_location, 'users/%s/subscription' % self.user.id)
+        return requests.get(url, params={'sessionId': self.session_id}).ok
+
+    def request(self, method, path, params=None, data=None):
         request_params = {
             'sessionId': self.session_id,
             'countryCode': self.country_code,
@@ -58,28 +65,18 @@ class Session(object):
         if params:
             request_params.update(params)
         url = urljoin(self.api_location, path)
-        r = requests.get(url, params=request_params)
+        r = requests.request(method, url, params=request_params, data=data)
         log.debug("request: %s" % r.request.url)
         r.raise_for_status()
-        json_obj = r.json()
-        log.debug("response: %s" % json.dumps(json_obj, indent=4))
-        return json_obj
+        if r.content:
+            log.debug("response: %s" % json.dumps(r.json(), indent=4))
+        return r
 
     def get_user(self, user_id):
         return self._map_request('users/%s' % user_id, ret='user')
 
     def get_user_playlists(self, user_id):
         return self._map_request('users/%s/playlists' % user_id, ret='playlists')
-
-    def get_favorite_artists(self, user_id):
-        return self._map_request('users/%s/favorites/artists' % user_id, ret='artists')
-
-    def get_favorite_albums(self, user_id):
-        return self._map_request('users/%s/favorites/albums' % user_id, ret='albums')
-
-    def get_favorite_tracks(self, user_id):
-        json_obj = self._request('users/%s/favorites/tracks' % user_id)
-        return [_parse_track(item['item']) for item in json_obj['items']]
 
     def get_playlist(self, playlist_id):
         return self._map_request('playlists/%s' % playlist_id, ret='playlist')
@@ -111,7 +108,7 @@ class Session(object):
         return self._map_request('artists/%s/toptracks' % artist_id, ret='tracks')
 
     def get_artist_bio(self, artist_id):
-        return self._request('artists/%s/bio' % artist_id)['text']
+        return self.request('GET', 'artists/%s/bio' % artist_id).json()['text']
 
     def get_artist_similar(self, artist_id):
         return self._map_request('artists/%s/similar' % artist_id, ret='artists')
@@ -120,7 +117,7 @@ class Session(object):
         return self._map_request('artists/%s/radio' % artist_id, params={'limit': 100}, ret='tracks')
 
     def _map_request(self, url, params=None, ret=None):
-        json_obj = self._request(url, params)
+        json_obj = self.request('GET', url, params).json()
         parse = None
         if ret.startswith('artist'):
             parse = _parse_artist
@@ -143,8 +140,8 @@ class Session(object):
 
     def get_media_url(self, track_id):
         params = {'soundQuality': 'HIGH'}
-        json_obj = self._request('tracks/%s/streamUrl' % track_id, params)
-        return json_obj['url']
+        r = self.request('GET', 'tracks/%s/streamUrl' % track_id, params)
+        return r.json()['url']
 
     def search(self, field, value):
         params = {
@@ -203,3 +200,52 @@ def _parse_track(json_obj):
         'album': album
     }
     return Track(**kwargs)
+
+
+class Favorites(object):
+
+    def __init__(self, session, user_id):
+        self._session = session
+        self._base_url = 'users/%s/favorites' % user_id
+
+    def add_artist(self, artist_id):
+        return self._session.request('POST', self._base_url + '/artists', data={'artistId': artist_id}).ok
+
+    def add_album(self, album_id):
+        return self._session.request('POST', self._base_url + '/albums', data={'albumId': album_id}).ok
+
+    def add_track(self, track_id):
+        return self._session.request('POST', self._base_url + '/tracks', data={'trackId': track_id}).ok
+
+    def remove_artist(self, artist_id):
+        return self._session.request('DELETE', self._base_url + '/artists/%s' % artist_id).ok
+
+    def remove_album(self, album_id):
+        return self._session.request('DELETE', self._base_url + '/albums/%s' % album_id).ok
+
+    def remove_track(self, track_id):
+        return self._session.request('DELETE', self._base_url + '/tracks/%s' % track_id).ok
+
+    def artists(self):
+        return self._session._map_request(self._base_url + '/artists', ret='artists')
+
+    def albums(self):
+        return self._session._map_request(self._base_url + '/albums', ret='albums')
+
+    def tracks(self):
+        r = self._session.request('GET', self._base_url + '/tracks')
+        return [_parse_track(item['item']) for item in r.json()['items']]
+
+
+class User(object):
+
+    favorites = None
+
+    def __init__(self, session, id):
+        """
+        :type session: :class:`wimpy.Session`
+        :param id: The user ID
+        """
+        self._session = session
+        self.id = id
+        self.favorites = Favorites(session, self.id)
