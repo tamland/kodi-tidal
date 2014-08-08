@@ -44,8 +44,6 @@ def view(data_items, urls, end=True):
 
 def track_list(tracks):
     xbmcplugin.setContent(plugin.handle, 'songs')
-    xbmcplugin.addSortMethod(plugin.handle, xbmcplugin.SORT_METHOD_PLAYLIST_ORDER)
-    xbmcplugin.addSortMethod(plugin.handle, xbmcplugin.SORT_METHOD_TRACKNUM)
     list_items = []
     for track in tracks:
         url = plugin.url_for(play, track_id=track.id)
@@ -97,6 +95,7 @@ def not_implemented():
 
 @plugin.route('/album/<album_id>')
 def album_view(album_id):
+    xbmcplugin.addSortMethod(plugin.handle, xbmcplugin.SORT_METHOD_TRACKNUM)
     track_list(wimp.get_album_tracks(album_id))
 
 
