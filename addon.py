@@ -52,6 +52,7 @@ def track_list(tracks):
         li.setInfo('music', {
             'title': track.name,
             'tracknumber': track.track_num,
+            'discnumber': track.disc_num,
             'artist': track.artist.name,
             'album': track.album.name})
         if track.album:
