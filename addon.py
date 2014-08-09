@@ -102,6 +102,7 @@ def album_view(album_id):
 
 @plugin.route('/artist/<artist_id>')
 def artist_view(artist_id):
+    xbmcplugin.setContent(plugin.handle, 'albums')
     xbmcplugin.addDirectoryItem(
         plugin.handle, plugin.url_for(top_tracks, artist_id),
         ListItem('Top Tracks'), True
@@ -132,6 +133,7 @@ def top_tracks(artist_id):
 
 @plugin.route('/artist/<artist_id>/similar')
 def similar_artists(artist_id):
+    xbmcplugin.setContent(plugin.handle, 'artists')
     artists = wimp.get_artist_similar(artist_id)
     view(artists, urls_from_id(artist_view, artists))
 
@@ -149,12 +151,14 @@ def my_playlists():
 
 @plugin.route('/favourite_artists')
 def favourite_artists():
+    xbmcplugin.setContent(plugin.handle, 'artists')
     items = wimp.user.favorites.artists()
     view(items, urls_from_id(artist_view, items))
 
 
 @plugin.route('/favourite_albums')
 def favourite_albums():
+    xbmcplugin.setContent(plugin.handle, 'albums')
     items = wimp.user.favorites.albums()
     view(items, urls_from_id(album_view, items))
 
