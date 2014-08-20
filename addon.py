@@ -53,6 +53,8 @@ def track_list(tracks):
     xbmcplugin.setContent(plugin.handle, 'songs')
     list_items = []
     for track in tracks:
+        if not track.available:
+            continue
         url = plugin.url_for(play, track_id=track.id)
         li = ListItem(track.name)
         li.setProperty('isplayable', 'true')
