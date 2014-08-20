@@ -20,6 +20,7 @@ from __future__ import unicode_literals
 import xbmc, xbmcgui, xbmcaddon, xbmcplugin
 from xbmcgui import ListItem
 from lib import wimpy
+from lib.wimpy.models import Album, Artist
 from routing import Plugin
 
 plugin = Plugin()
@@ -35,6 +36,12 @@ def view(data_items, urls, end=True):
     list_items = []
     for item, url in zip(data_items, urls):
         li = ListItem(item.name)
+        info = {'title': item.name}
+        if isinstance(item, Album):
+            info.update({'album': item.name, 'artist': item.artist.name})
+        elif isinstance(item, Artist):
+            info.update({'artist': item.name})
+        li.setInfo('music', info)
         li.setThumbnailImage(item.image)
         list_items.append((url, li, True))
     xbmcplugin.addDirectoryItems(plugin.handle, list_items)
