@@ -9,12 +9,12 @@
     </extension>
     <extension point="xbmc.addon.metadata">
         <summary lang="en">WiMP music add-on</summary>
-        <description lang="en">Play music from WiMP music streaming service. Requires account.</description>
+        <description lang="en">Play music from WiMP music streaming service. Visit wimpmusic.com for details.</description>
         <disclaimer lang="en">This is an unofficial client and is not supported nor endorsed by WiMP.</disclaimer>
         <license>GNU GENERAL PUBLIC LICENSE. Version 3, 29 June 2007</license>
         <platform>all</platform>
-        <language></language>
+        <language>en de dk no sv pl</language>
         <forum></forum>
-        <source></source>
+        <source>https://github.com/tamland/xbmc-wimp</source>
     </extension>
 </addon>
