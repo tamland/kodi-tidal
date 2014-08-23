@@ -2,7 +2,7 @@
 <addon id="plugin.audio.wimp" name="WiMP" version="0.0.2" provider-name="takoi">
     <requires>
         <import addon="xbmc.python" version="2.14.0"/>
-        <import addon="script.module.requests" version="1.0.4"/>
+        <import addon="script.module.requests" version="2.3.0"/>
     </requires>
     <extension point="xbmc.python.pluginsource" library="addon.py">
         <provides>audio</provides>
