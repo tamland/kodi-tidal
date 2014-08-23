@@ -91,7 +91,7 @@ def root():
 
 @plugin.route('/my_music')
 def my_music():
-    add_directory('Playlists', my_playlists)
+    add_directory('My Playlists', my_playlists)
     add_directory('Favourite Playlists', favourite_playlists)
     add_directory('Favourite Artists', favourite_artists)
     add_directory('Favourite Albums', favourite_albums)
@@ -155,7 +155,7 @@ def playlist_view(playlist_id):
 
 @plugin.route('/user_playlists')
 def my_playlists():
-    items = wimp.user.playlists
+    items = wimp.user.playlists()
     view(items, urls_from_id(playlist_view, items))
 
 
