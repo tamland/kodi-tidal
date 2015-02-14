@@ -25,11 +25,14 @@ from routing import Plugin
 
 plugin = Plugin()
 addon = xbmcaddon.Addon()
-wimp = wimpy.Session(
+
+config = wimpy.Config(
     session_id=addon.getSetting('session_id'),
     country_code=addon.getSetting('country_code'),
-    user_id=addon.getSetting('user_id')
+    user_id=addon.getSetting('user_id'),
+    api=wimpy.TIDAL_API if addon.getSetting('site') == '1' else wimpy.WIMP_API,
 )
+wimp = wimpy.Session(config)
 
 
 def view(data_items, urls, end=True):
