@@ -3,4 +3,8 @@
     <string id="30001">Site</string>
     <string id="30002">WiMP</string>
     <string id="30003">Tidal</string>
+    <string id="30004">Quality</string>
+    <string id="30005">Lossless</string>
+    <string id="30006">High</string>
+    <string id="30007">Low</string>
 </strings>

@@ -21,16 +21,19 @@ import xbmc, xbmcgui, xbmcaddon, xbmcplugin
 from xbmcgui import ListItem
 from lib import wimpy
 from lib.wimpy.models import Album, Artist
+from lib.wimpy import Quality
 from routing import Plugin
 
 plugin = Plugin()
 addon = xbmcaddon.Addon()
 
+quality = [Quality.lossless, Quality.high, Quality.low][int('0'+addon.getSetting('quality'))]
 config = wimpy.Config(
     session_id=addon.getSetting('session_id'),
     country_code=addon.getSetting('country_code'),
     user_id=addon.getSetting('user_id'),
     api=wimpy.TIDAL_API if addon.getSetting('site') == '1' else wimpy.WIMP_API,
+    quality=quality,
 )
 wimp = wimpy.Session(config)
 
@@ -229,9 +232,12 @@ def logout():
 @plugin.route('/play/<track_id>')
 def play(track_id):
     media_url = wimp.get_media_url(track_id)
-    host, app, playpath = media_url.split('/', 3)
-    rtmp_url = 'rtmp://%s app=%s playpath=%s' % (host, app, playpath)
-    li = ListItem(path=rtmp_url)
+    if not media_url.startswith('http://') and not media_url.startswith('https://'):
+        host, app, playpath = media_url.split('/', 3)
+        media_url = 'rtmp://%s app=%s playpath=%s' % (host, app, playpath)
+    li = ListItem(path=media_url)
+    mimetype = 'audio/flac' if quality == Quality.lossless else 'audio/mpeg'
+    li.setProperty('mimetype', mimetype)
     xbmcplugin.setResolvedUrl(plugin.handle, True, li)
 
 
