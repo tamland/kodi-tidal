@@ -21,6 +21,7 @@ import xbmc, xbmcgui, xbmcaddon, xbmcplugin
 from xbmcgui import ListItem
 from lib import wimpy
 from lib.wimpy.models import Album, Artist
+from lib.wimpy import Quality
 from routing import Plugin
 
 plugin = Plugin()
@@ -31,6 +32,7 @@ config = wimpy.Config(
     country_code=addon.getSetting('country_code'),
     user_id=addon.getSetting('user_id'),
     api=wimpy.TIDAL_API if addon.getSetting('site') == '1' else wimpy.WIMP_API,
+    quality=[Quality.lossless, Quality.high, Quality.low][int('0'+addon.getSetting('quality'))],
 )
 wimp = wimpy.Session(config)
 

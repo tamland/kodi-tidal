@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <settings>
     <setting label="30001" id="site" type="select" lvalues="30002|30003" default="0"/>
+    <setting label="30004" id="quality" type="select" lvalues="30005|30006|30007" default="1"/>
 </settings>
