@@ -89,11 +89,11 @@ def urls_from_id(view_func, items):
 @plugin.route('/')
 def root():
     add_directory('My music', my_music)
-    add_directory('Search', search)
     add_directory('Featured Playlists', promotions)
     add_directory("What's New", whats_new)
     add_directory('Genres', genres)
     add_directory('Moods', moods)
+    add_directory('Search', search)
     add_directory('Login', login)
     add_directory('Logout', logout)
     xbmcplugin.endOfDirectory(plugin.handle)
