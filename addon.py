@@ -19,6 +19,7 @@ from __future__ import unicode_literals
 
 import xbmc, xbmcgui, xbmcaddon, xbmcplugin
 from xbmcgui import ListItem
+from requests import HTTPError
 from lib import wimpy
 from lib.wimpy.models import Album, Artist
 from lib.wimpy import Quality
@@ -337,5 +338,15 @@ def play(track_id):
     xbmcplugin.setResolvedUrl(plugin.handle, True, li)
 
 
+def handle_errors(f):
+    try:
+        f()
+    except HTTPError as e:
+        if e.response.status_code in [401, 403]:
+            dialog = xbmcgui.Dialog()
+            dialog.notification(addon.getAddonInfo('name'), "Unauthorized", xbmcgui.NOTIFICATION_ERROR)
+        else:
+            raise e
+
 if __name__ == '__main__':
-    plugin.run()
+    handle_errors(plugin.run)
