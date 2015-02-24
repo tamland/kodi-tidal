@@ -308,7 +308,7 @@ def login():
         username = dialog.input('Username')
         if not username:
             return
-        password = dialog.input('Password')
+        password = dialog.input('Password', option=xbmcgui.ALPHANUM_HIDE_INPUT)
         if not password:
             return
 
