@@ -299,17 +299,23 @@ def search():
 
 @plugin.route('/login')
 def login():
-    dialog = xbmcgui.Dialog()
-    username = dialog.input('Username')
-    if username:
+    username = addon.getSetting('username')
+    password = addon.getSetting('password')
+
+    if not username or not password:
+        # Ask for username/password
+        dialog = xbmcgui.Dialog()
+        username = dialog.input('Username')
+        if not username:
+            return
         password = dialog.input('Password')
-        if password:
-            if wimp.login(username, password):
-                addon.setSetting('session_id', wimp.session_id)
-                addon.setSetting('country_code', wimp.country_code)
-                addon.setSetting('user_id', unicode(wimp.user.id))
-                return
-    raise Exception('failed to login')
+        if not password:
+            return
+
+    if wimp.login(username, password):
+        addon.setSetting('session_id', wimp.session_id)
+        addon.setSetting('country_code', wimp.country_code)
+        addon.setSetting('user_id', unicode(wimp.user.id))
 
 
 @plugin.route('/logout')

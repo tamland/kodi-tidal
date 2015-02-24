@@ -7,4 +7,6 @@
     <string id="30005">Lossless</string>
     <string id="30006">High</string>
     <string id="30007">Low</string>
+    <string id="30008">Username</string>
+    <string id="30009">Password</string>
 </strings>
