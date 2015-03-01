@@ -84,9 +84,10 @@ def track_list(tracks):
     xbmcplugin.endOfDirectory(plugin.handle)
 
 
-def add_directory(title, view_func, **kwargs):
-    xbmcplugin.addDirectoryItem(
-        plugin.handle, plugin.url_for(view_func, **kwargs), ListItem(title), True)
+def add_directory(title, endpoint,):
+    if callable(endpoint):
+        endpoint = plugin.url_for(endpoint)
+    xbmcplugin.addDirectoryItem(plugin.handle, endpoint, ListItem(title), True)
 
 
 def urls_from_id(view_func, items):
@@ -96,7 +97,7 @@ def urls_from_id(view_func, items):
 @plugin.route('/')
 def root():
     add_directory('My music', my_music)
-    add_directory('Featured Playlists', promotions)
+    add_directory('Featured Playlists', featured_playlists)
     add_directory("What's New", whats_new)
     add_directory('Genres', genres)
     add_directory('Moods', moods)
@@ -131,9 +132,9 @@ def genres():
 
 @plugin.route('/genre/<genre_id>')
 def genre_view(genre_id):
-    add_directory('Playlists', genre_playlists, genre_id=genre_id)
-    add_directory('Albums', genre_albums, genre_id=genre_id)
-    add_directory('Tracks', genre_tracks, genre_id=genre_id)
+    add_directory('Playlists', plugin.url_for(genre_playlists, genre_id=genre_id))
+    add_directory('Albums', plugin.url_for(genre_albums, genre_id=genre_id))
+    add_directory('Tracks', plugin.url_for(genre_tracks, genre_id=genre_id))
     xbmcplugin.endOfDirectory(plugin.handle)
 
 
@@ -155,41 +156,34 @@ def genre_tracks(genre_id):
     track_list(items)
 
 
-@plugin.route('/promotions')
-def promotions():
+@plugin.route('/featured_playlists')
+def featured_playlists():
     items = wimp.get_featured()
     view(items, urls_from_id(playlist_view, items))
 
 
-@plugin.route('/featured/tracks/<ordering>')
-def featured_tracks(ordering):
-    items = wimp.get_recommended_new_top('tracks', ordering)
-    track_list(items)
-
-
-@plugin.route('/featured/playlists/<ordering>')
-def featured_playlists(ordering):
-    items = wimp.get_recommended_new_top('playlists', ordering)
-    view(items, urls_from_id(playlist_view, items))
-
-
-@plugin.route('/featured/albums/<ordering>')
-def featured_albums(ordering):
-    items = wimp.get_recommended_new_top('albums', ordering)
-    view(items, urls_from_id(album_view, items))
-
-
 @plugin.route('/whats_new')
 def whats_new():
-    add_directory('New Playlists', featured_playlists, ordering='new')
-    add_directory('Recommended Playlists', featured_playlists, ordering='recommended')
-    add_directory('New Albums', featured_albums, ordering='new')
-    add_directory('Top Albums', featured_albums, ordering='top')
-    add_directory('Recommended Albums', featured_albums, ordering='recommended')
-    add_directory('New Tracks', featured_tracks, ordering='new')
-    add_directory('Top Tracks', featured_tracks, ordering='top')
-    add_directory('Recommended Tracks', featured_tracks, ordering='recommended')
+    add_directory('Recommended Playlists', plugin.url_for(featured, group='recommended', content_type='playlists'))
+    add_directory('Recommended Albums', plugin.url_for(featured, group='recommended', content_type='albums'))
+    add_directory('Recommended Tracks', plugin.url_for(featured, group='recommended', content_type='tracks'))
+    add_directory('New Playlists', plugin.url_for(featured, group='new', content_type='playlists'))
+    add_directory('New Albums', plugin.url_for(featured, group='new', content_type='albums'))
+    add_directory('New Tracks', plugin.url_for(featured, group='new', content_type='tracks'))
+    add_directory('Top Albums', plugin.url_for(featured, group='top', content_type='albums'))
+    add_directory('Top Tracks', plugin.url_for(featured, group='top', content_type='tracks'))
     xbmcplugin.endOfDirectory(plugin.handle)
+
+
+@plugin.route('/featured/<group>/<content_type>')
+def featured(group=None, content_type=None):
+    items = wimp.get_featured_items(content_type, group)
+    if content_type == 'tracks':
+        track_list(items)
+    elif content_type == 'albums':
+        view(items, urls_from_id(album_view, items))
+    elif content_type == 'playlists':
+        view(items, urls_from_id(playlist_view, items))
 
 
 @plugin.route('/my_music')
