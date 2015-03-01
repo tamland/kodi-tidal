@@ -111,51 +111,47 @@ def track_radio(track_id):
     track_list(wimp.get_track_radio(track_id))
 
 
+@plugin.route('/moods')
+def moods():
+    items = wimp.get_moods()
+    view(items, urls_from_id(moods_playlists, items))
+
+
 @plugin.route('/moods/<mood>')
 def moods_playlists(mood):
     items = wimp.get_mood_playlists(mood)
     view(items, urls_from_id(playlist_view, items))
 
 
-@plugin.route('/moods')
-def moods():
-    items = wimp.get_moods()
-    for mood in items:
-        add_directory(mood['name'], moods_playlists, mood=mood['path'])
-    xbmcplugin.endOfDirectory(plugin.handle)
-
-
 @plugin.route('/genres')
 def genres():
     items = wimp.get_genres()
-    for item in items:
-        add_directory(item['name'], genre, _genre=item['path'])
+    view(items, urls_from_id(genre_view, items))
+
+
+@plugin.route('/genre/<genre_id>')
+def genre_view(genre_id):
+    add_directory('Playlists', genre_playlists, genre_id=genre_id)
+    add_directory('Albums', genre_albums, genre_id=genre_id)
+    add_directory('Tracks', genre_tracks, genre_id=genre_id)
     xbmcplugin.endOfDirectory(plugin.handle)
 
 
-@plugin.route('/genre/<_genre>')
-def genre(_genre):
-    add_directory('Playlists', genre_playlists, _genre=_genre)
-    add_directory('Albums', genre_albums, _genre=_genre)
-    add_directory('Tracks', genre_tracks, _genre=_genre)
-    xbmcplugin.endOfDirectory(plugin.handle)
-
-
-@plugin.route('/genre/<_genre>/playlists')
-def genre_playlists(_genre):
-    items = wimp.get_genre_items(_genre, 'playlists')
+@plugin.route('/genre/<genre_id>/playlists')
+def genre_playlists(genre_id):
+    items = wimp.get_genre_items(genre_id, 'playlists')
     view(items, urls_from_id(playlist_view, items))
 
 
-@plugin.route('/genre/<_genre>/albums')
-def genre_albums(_genre):
-    items = wimp.get_genre_items(_genre, 'albums')
+@plugin.route('/genre/<genre_id>/albums')
+def genre_albums(genre_id):
+    items = wimp.get_genre_items(genre_id, 'albums')
     view(items, urls_from_id(album_view, items))
 
 
-@plugin.route('/genre/<_genre>/tracks')
-def genre_tracks(_genre):
-    items = wimp.get_genre_items(_genre, 'tracks')
+@plugin.route('/genre/<genre_id>/tracks')
+def genre_tracks(genre_id):
+    items = wimp.get_genre_items(genre_id, 'tracks')
     track_list(items)
 
 
@@ -165,35 +161,34 @@ def promotions():
     view(items, urls_from_id(playlist_view, items))
 
 
-@plugin.route('/featured/tracks/<_type>')
-def featured_tracks(_type):
-    items = wimp.get_recommended_new_top('tracks', _type)
+@plugin.route('/featured/tracks/<ordering>')
+def featured_tracks(ordering):
+    items = wimp.get_recommended_new_top('tracks', ordering)
     track_list(items)
 
 
-@plugin.route('/featured/playlists/<_type>')
-def featured_playlists(_type):
-    items = wimp.get_recommended_new_top('playlists', _type)
+@plugin.route('/featured/playlists/<ordering>')
+def featured_playlists(ordering):
+    items = wimp.get_recommended_new_top('playlists', ordering)
     view(items, urls_from_id(playlist_view, items))
 
 
-@plugin.route('/featured/albums/<_type>')
-def featured_albums(_type):
-    items = wimp.get_recommended_new_top('albums', _type)
+@plugin.route('/featured/albums/<ordering>')
+def featured_albums(ordering):
+    items = wimp.get_recommended_new_top('albums', ordering)
     view(items, urls_from_id(album_view, items))
 
 
 @plugin.route('/whats_new')
 def whats_new():
-    add_directory('New Playlists', featured_playlists, _type='new')
-    add_directory(
-        'Recommended Playlists', featured_playlists, _type='recommended')
-    add_directory('New Albums', featured_albums, _type='new')
-    add_directory('Top Albums', featured_albums, _type='top')
-    add_directory('Recommended Albums', featured_albums, _type='recommended')
-    add_directory('New Tracks', featured_tracks, _type='new')
-    add_directory('Top Tracks', featured_tracks, _type='top')
-    add_directory('Recommended Tracks', featured_tracks, _type='recommended')
+    add_directory('New Playlists', featured_playlists, ordering='new')
+    add_directory('Recommended Playlists', featured_playlists, ordering='recommended')
+    add_directory('New Albums', featured_albums, ordering='new')
+    add_directory('Top Albums', featured_albums, ordering='top')
+    add_directory('Recommended Albums', featured_albums, ordering='recommended')
+    add_directory('New Tracks', featured_tracks, ordering='new')
+    add_directory('Top Tracks', featured_tracks, ordering='top')
+    add_directory('Recommended Tracks', featured_tracks, ordering='recommended')
     xbmcplugin.endOfDirectory(plugin.handle)
 
 
