@@ -21,7 +21,7 @@ import logging
 import requests
 from collections import namedtuple
 from .compat import urljoin
-from .models import Artist, Album, Track, Playlist, SearchResult
+from .models import Artist, Album, Track, Playlist, SearchResult, Category
 
 log = logging.getLogger(__name__)
 
@@ -148,27 +148,28 @@ class Session(object):
         return self._map_request('artists/%s/radio' % artist_id, params={'limit': 100}, ret='tracks')
 
     def get_featured(self):
-        return self._map_request('promotions', ret='featured_playlist', _filter=lambda x: x['type'] == 'PLAYLIST')
+        items = self.request('GET', 'promotions').json()['items']
+        return [_parse_featured_playlist(item) for item in items if item['type'] == 'PLAYLIST']
 
-    def get_recommended_new_top(self, what, _type):
-        return self._map_request('/'.join(['featured', _type, what]), ret=what)
+    def get_recommended_new_top(self, content_type, ordering):
+        return self._map_request('/'.join(['featured', ordering, content_type]), ret=content_type)
 
     def get_moods(self):
-        return self.request('GET', 'moods', None).json()
+        return map(_parse_moods, self.request('GET', 'moods').json())
 
-    def get_mood_playlists(self, mood):
-        return self._map_request('/'.join(['moods', mood, 'playlists']), ret='playlists')
+    def get_mood_playlists(self, mood_id):
+        return self._map_request('/'.join(['moods', mood_id, 'playlists']), ret='playlists')
 
     def get_genres(self):
-        return self.request('GET', 'genres', None).json()
+        return map(_parse_genres, self.request('GET', 'genres').json())
 
-    def get_genre_items(self, genre, _type):
-        return self._map_request('/'.join(['genres', genre, _type]), ret=_type)
+    def get_genre_items(self, genre_id, content_type):
+        return self._map_request('/'.join(['genres', genre_id, content_type]), ret=content_type)
 
     def get_track_radio(self, track_id):
         return self._map_request('tracks/%s/radio' % track_id, params={'limit': 100}, ret='tracks')
 
-    def _map_request(self, url, params=None, ret=None, _filter=None):
+    def _map_request(self, url, params=None, ret=None):
         json_obj = self.request('GET', url, params).json()
         parse = None
         if ret.startswith('artist'):
@@ -181,13 +182,8 @@ class Session(object):
             raise NotImplementedError()
         elif ret.startswith('playlist'):
             parse = _parse_playlist
-        elif ret.startswith('featured_playlist'):
-            parse = _parse_featured_playlist
 
         items = json_obj.get('items')
-        if _filter is not None and items is not None:
-            items = filter(_filter, items)
-
         if items is None:
             return parse(json_obj)
         elif len(items) > 0 and 'item' in items[0]:
@@ -268,6 +264,18 @@ def _parse_track(json_obj):
         'available': bool(json_obj['streamReady']),
     }
     return Track(**kwargs)
+
+
+def _parse_genres(json_obj):
+    image = "http://resources.wimpmusic.com/images/%s/460x306.jpg" \
+            % json_obj['image'].replace('-', '/')
+    return Category(id=json_obj['path'], name=json_obj['name'], image=image)
+
+
+def _parse_moods(json_obj):
+    image = "http://resources.wimpmusic.com/images/%s/342x342.jpg" \
+            % json_obj['image'].replace('-', '/')
+    return Category(id=json_obj['path'], name=json_obj['name'], image=image)
 
 
 class Favorites(object):
