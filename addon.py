@@ -17,7 +17,9 @@
 
 from __future__ import unicode_literals
 
-import xbmc, xbmcgui, xbmcaddon, xbmcplugin
+import xbmcgui
+import xbmcaddon
+import xbmcplugin
 from xbmcgui import ListItem
 from requests import HTTPError
 from lib import wimpy
