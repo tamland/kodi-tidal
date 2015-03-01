@@ -51,7 +51,8 @@ def view(data_items, urls, end=True):
         elif isinstance(item, Artist):
             info.update({'artist': item.name})
         li.setInfo('music', info)
-        li.setThumbnailImage(item.image)
+        if getattr(item, 'image', None):
+            li.setThumbnailImage(item.image)
         list_items.append((url, li, True))
     xbmcplugin.addDirectoryItems(plugin.handle, list_items)
     if end:
