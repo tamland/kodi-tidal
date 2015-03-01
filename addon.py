@@ -207,11 +207,6 @@ def my_music():
     xbmcplugin.endOfDirectory(plugin.handle)
 
 
-@plugin.route('/not_implemented')
-def not_implemented():
-    raise NotImplementedError()
-
-
 @plugin.route('/album/<album_id>')
 def album_view(album_id):
     xbmcplugin.addSortMethod(plugin.handle, xbmcplugin.SORT_METHOD_TRACKNUM)
