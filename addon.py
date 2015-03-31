@@ -96,7 +96,7 @@ def urls_from_id(view_func, items):
 
 @plugin.route('/')
 def root():
-    add_directory('My music', my_music)
+    add_directory('My Music', my_music)
     add_directory('Featured Playlists', featured_playlists)
     add_directory("What's New", whats_new)
     add_directory('Genres', genres)
