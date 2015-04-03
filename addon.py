@@ -32,13 +32,18 @@ addon = xbmcaddon.Addon()
 
 quality = [Quality.lossless, Quality.high, Quality.low][int('0'+addon.getSetting('quality'))]
 config = wimpy.Config(
-    session_id=addon.getSetting('session_id'),
-    country_code=addon.getSetting('country_code'),
-    user_id=addon.getSetting('user_id'),
     api=wimpy.TIDAL_API if addon.getSetting('site') == '1' else wimpy.WIMP_API,
-    quality=quality,
-)
-wimp = wimpy.Session(config)
+    quality=quality)
+
+wimp = wimpy.Session(config=config)
+
+is_logged_in = False
+session_id = addon.getSetting('session_id')
+country_code = addon.getSetting('country_code')
+user_id = addon.getSetting('user_id')
+if session_id and country_code and user_id:
+    wimp.load_session(session_id=session_id, country_code=country_code, user_id=user_id)
+    is_logged_in = True
 
 
 def view(data_items, urls, end=True):
@@ -96,14 +101,16 @@ def urls_from_id(view_func, items):
 
 @plugin.route('/')
 def root():
-    add_directory('My Music', my_music)
-    add_directory('Featured Playlists', featured_playlists)
-    add_directory("What's New", whats_new)
-    add_directory('Genres', genres)
-    add_directory('Moods', moods)
-    add_directory('Search', search)
-    add_directory('Login', login)
-    add_directory('Logout', logout)
+    if is_logged_in:
+        add_directory('My Music', my_music)
+        add_directory('Featured Playlists', featured_playlists)
+        add_directory("What's New", whats_new)
+        add_directory('Genres', genres)
+        add_directory('Moods', moods)
+        add_directory('Search', search)
+        add_directory('Logout', logout)
+    else:
+        add_directory('Login', login)
     xbmcplugin.endOfDirectory(plugin.handle)
 
 
