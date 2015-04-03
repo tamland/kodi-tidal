@@ -348,8 +348,9 @@ def logout():
 def play(track_id):
     media_url = wimp.get_media_url(track_id)
     if not media_url.startswith('http://') and not media_url.startswith('https://'):
-        host, app, playpath = media_url.split('/', 3)
-        media_url = 'rtmp://%s app=%s playpath=%s' % (host, app, playpath)
+        host, tail = media_url.split('/', 1)
+        app, playpath = tail.split('/mp4:', 1)
+        media_url = 'rtmp://%s app=%s playpath=mp4:%s' % (host, app, playpath)
     li = ListItem(path=media_url)
     mimetype = 'audio/flac' if quality == Quality.lossless else 'audio/mpeg'
     li.setProperty('mimetype', mimetype)
