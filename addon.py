@@ -18,6 +18,7 @@
 from __future__ import unicode_literals
 import traceback
 
+import xbmc
 import xbmcgui
 import xbmcaddon
 import xbmcplugin
@@ -45,6 +46,11 @@ user_id = addon.getSetting('user_id')
 if session_id and country_code and user_id:
     wimp.load_session(session_id=session_id, country_code=country_code, user_id=user_id)
     is_logged_in = True
+
+_addon_id = xbmcaddon.Addon().getAddonInfo('id').decode('utf-8')
+
+def log(msg):
+    xbmc.log(("[%s] %s" % (_addon_id, msg)).encode('utf-8'), level=xbmc.LOGDEBUG)
 
 
 def view(data_items, urls, end=True):
@@ -348,6 +354,7 @@ def logout():
 def play(track_id):
     media_url = wimp.get_media_url(track_id)
     if not media_url.startswith('http://') and not media_url.startswith('https://'):
+        log("media url: %s" % media_url)
         host, tail = media_url.split('/', 1)
         app, playpath = tail.split('/mp4:', 1)
         media_url = 'rtmp://%s app=%s playpath=mp4:%s' % (host, app, playpath)
