@@ -16,8 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import unicode_literals
-import traceback
 
+import traceback
 import xbmc
 import xbmcgui
 import xbmcaddon
@@ -29,25 +29,26 @@ from lib.wimpy.models import Album, Artist
 from lib.wimpy import Quality
 from routing import Plugin
 
-plugin = Plugin()
 addon = xbmcaddon.Addon()
+plugin = Plugin()
+plugin.name = addon.getAddonInfo('name')
 
-quality = [Quality.lossless, Quality.high, Quality.low][int('0'+addon.getSetting('quality'))]
+_addon_id = addon.getAddonInfo('id')
+
 config = wimpy.Config(
     api=wimpy.TIDAL_API if addon.getSetting('site') == '1' else wimpy.WIMP_API,
-    quality=quality)
+    quality=[Quality.lossless, Quality.high, Quality.low][int('0' + addon.getSetting('quality'))])
 
 wimp = wimpy.Session(config=config)
 
 is_logged_in = False
-session_id = addon.getSetting('session_id')
-country_code = addon.getSetting('country_code')
-user_id = addon.getSetting('user_id')
-if session_id and country_code and user_id:
-    wimp.load_session(session_id=session_id, country_code=country_code, user_id=user_id)
+_session_id = addon.getSetting('session_id')
+_country_code = addon.getSetting('country_code')
+_user_id = addon.getSetting('user_id')
+if _session_id and _country_code and _user_id:
+    wimp.load_session(session_id=_session_id, country_code=_country_code, user_id=_user_id)
     is_logged_in = True
 
-_addon_id = xbmcaddon.Addon().getAddonInfo('id').decode('utf-8')
 
 def log(msg):
     xbmc.log(("[%s] %s" % (_addon_id, msg)).encode('utf-8'), level=xbmc.LOGDEBUG)
@@ -339,7 +340,7 @@ def login():
         if not addon.getSetting('username') or not addon.getSetting('password'):
             # Ask about remembering username/password
             dialog = xbmcgui.Dialog()
-            if dialog.yesno(addon.getAddonInfo('name'), 'Remember login details?'):
+            if dialog.yesno(plugin.name, 'Remember login details?'):
                 addon.setSetting('username', username)
                 addon.setSetting('password', password)
 
@@ -359,7 +360,7 @@ def play(track_id):
         app, playpath = tail.split('/mp4:', 1)
         media_url = 'rtmp://%s app=%s playpath=mp4:%s' % (host, app, playpath)
     li = ListItem(path=media_url)
-    mimetype = 'audio/flac' if quality == Quality.lossless else 'audio/mpeg'
+    mimetype = 'audio/flac' if config.quality == Quality.lossless else 'audio/mpeg'
     li.setProperty('mimetype', mimetype)
     xbmcplugin.setResolvedUrl(plugin.handle, True, li)
 
@@ -370,5 +371,5 @@ if __name__ == '__main__':
     except HTTPError as e:
         if e.response.status_code in [401, 403]:
             dialog = xbmcgui.Dialog()
-            dialog.notification(addon.getAddonInfo('name'), "Authorization problem", xbmcgui.NOTIFICATION_ERROR)
+            dialog.notification(plugin.name, "Authorization problem", xbmcgui.NOTIFICATION_ERROR)
         traceback.print_exc()
