@@ -16,6 +16,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import unicode_literals
+import traceback
 
 import xbmcgui
 import xbmcaddon
@@ -355,15 +356,11 @@ def play(track_id):
     xbmcplugin.setResolvedUrl(plugin.handle, True, li)
 
 
-def handle_errors(f):
+if __name__ == '__main__':
     try:
-        f()
+        plugin.run()
     except HTTPError as e:
         if e.response.status_code in [401, 403]:
             dialog = xbmcgui.Dialog()
-            dialog.notification(addon.getAddonInfo('name'), "Unauthorized", xbmcgui.NOTIFICATION_ERROR)
-        else:
-            raise e
-
-if __name__ == '__main__':
-    handle_errors(plugin.run)
+            dialog.notification(addon.getAddonInfo('name'), "Authorization problem", xbmcgui.NOTIFICATION_ERROR)
+        traceback.print_exc()
