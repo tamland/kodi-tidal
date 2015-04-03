@@ -329,6 +329,12 @@ def login():
         addon.setSetting('country_code', wimp.country_code)
         addon.setSetting('user_id', unicode(wimp.user.id))
 
+        if not addon.getSetting('username') or not addon.getSetting('password'):
+            # Ask about remembering username/password
+            dialog = xbmcgui.Dialog()
+            if dialog.yesno(addon.getAddonInfo('name'), 'Remember login details?'):
+                addon.setSetting('username', username)
+                addon.setSetting('password', password)
 
 @plugin.route('/logout')
 def logout():
