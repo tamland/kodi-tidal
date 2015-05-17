@@ -58,6 +58,8 @@ def view(data_items, urls, end=True):
         info = {'title': item.name}
         if isinstance(item, Album):
             info.update({'album': item.name, 'artist': item.artist.name})
+            if item.release_date:
+                info['year'] = item.release_date.year
         elif isinstance(item, Artist):
             info.update({'artist': item.name})
         li.setInfo('music', info)
@@ -83,7 +85,9 @@ def track_list(tracks):
             'tracknumber': track.track_num,
             'discnumber': track.disc_num,
             'artist': track.artist.name,
-            'album': track.album.name})
+            'album': track.album.name,
+            'year': track.album.release_date.year if track.album.release_date else None,
+        })
         if track.album:
             li.setThumbnailImage(track.album.image)
         radio_url = plugin.url_for(track_radio, track_id=track.id)
