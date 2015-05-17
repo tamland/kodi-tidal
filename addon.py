@@ -161,6 +161,7 @@ def genre_playlists(genre_id):
 
 @plugin.route('/genre/<genre_id>/albums')
 def genre_albums(genre_id):
+    xbmcplugin.setContent(plugin.handle, 'albums')
     items = wimp.get_genre_items(genre_id, 'albums')
     view(items, urls_from_id(album_view, items))
 
@@ -200,6 +201,7 @@ def featured(group=None, content_type=None):
     if content_type == 'tracks':
         track_list(items)
     elif content_type == 'albums':
+        xbmcplugin.setContent(plugin.handle, 'albums')
         view(items, urls_from_id(album_view, items))
     elif content_type == 'playlists':
         view(items, urls_from_id(playlist_view, items))
