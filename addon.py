@@ -35,10 +35,7 @@ plugin.name = addon.getAddonInfo('name')
 
 _addon_id = addon.getAddonInfo('id')
 
-config = wimpy.Config(
-    api=wimpy.TIDAL_API if addon.getSetting('site') == '1' else wimpy.WIMP_API,
-    quality=[Quality.lossless, Quality.high, Quality.low][int('0' + addon.getSetting('quality'))])
-
+config = wimpy.Config(quality=[Quality.lossless, Quality.high, Quality.low][int('0' + addon.getSetting('quality'))])
 wimp = wimpy.Session(config=config)
 
 is_logged_in = False
