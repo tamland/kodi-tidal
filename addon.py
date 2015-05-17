@@ -185,7 +185,7 @@ def whats_new():
     add_directory('New Tracks', plugin.url_for(featured, group='new', content_type='tracks'))
     add_directory('Top Albums', plugin.url_for(featured, group='top', content_type='albums'))
     add_directory('Top Tracks', plugin.url_for(featured, group='top', content_type='tracks'))
-    if config.api is wimpy.WIMP_API:
+    if wimp.country_code == 'US':
         add_directory('Local Playlists', plugin.url_for(featured, group='local', content_type='playlists'))
         add_directory('Local Albums', plugin.url_for(featured, group='local', content_type='albums'))
         add_directory('Local Tracks', plugin.url_for(featured, group='local', content_type='tracks'))
