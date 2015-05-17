@@ -16,6 +16,8 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import unicode_literals
+
+import datetime
 import json
 import logging
 import requests
@@ -26,11 +28,6 @@ from .models import Artist, Album, Track, Playlist, SearchResult, Category
 log = logging.getLogger(__name__)
 
 Api = namedtuple('API', ['location', 'token'])
-
-WIMP_API = Api(
-    location='https://play.wimpmusic.com/v1/',
-    token='oIaGpqT_vQPnTr0Q',
-)
 
 TIDAL_API = Api(
     location='https://api.tidalhifi.com/v1/',
@@ -45,7 +42,7 @@ class Quality(object):
 
 
 class Config(object):
-    api = WIMP_API
+    api = TIDAL_API
     """:type api: :class:`Api`"""
     quality = Quality.high
 
@@ -226,6 +223,11 @@ def _parse_album(json_obj, artist=None):
         'duration': json_obj.get('duration'),
         'artist': artist,
     }
+    if 'releaseDate' in json_obj:
+        try:
+            kwargs['release_date'] = datetime.datetime(*map(int, json_obj['releaseDate'].split('-')))
+        except ValueError:
+            pass
     return Album(**kwargs)
 
 
