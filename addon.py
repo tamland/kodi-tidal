@@ -24,9 +24,9 @@ import xbmcaddon
 import xbmcplugin
 from xbmcgui import ListItem
 from requests import HTTPError
-from lib import wimpy
-from lib.wimpy.models import Album, Artist
-from lib.wimpy import Quality
+from lib import tidalapi
+from lib.tidalapi.models import Album, Artist
+from lib.tidalapi import Quality
 from routing import Plugin
 
 addon = xbmcaddon.Addon()
@@ -35,15 +35,15 @@ plugin.name = addon.getAddonInfo('name')
 
 _addon_id = addon.getAddonInfo('id')
 
-config = wimpy.Config(quality=[Quality.lossless, Quality.high, Quality.low][int('0' + addon.getSetting('quality'))])
-wimp = wimpy.Session(config=config)
+config = tidalapi.Config(quality=[Quality.lossless, Quality.high, Quality.low][int('0' + addon.getSetting('quality'))])
+session = tidalapi.Session(config=config)
 
 is_logged_in = False
 _session_id = addon.getSetting('session_id')
 _country_code = addon.getSetting('country_code')
 _user_id = addon.getSetting('user_id')
 if _session_id and _country_code and _user_id:
-    wimp.load_session(session_id=_session_id, country_code=_country_code, user_id=_user_id)
+    session.load_session(session_id=_session_id, country_code=_country_code, user_id=_user_id)
     is_logged_in = True
 
 
@@ -125,24 +125,24 @@ def root():
 
 @plugin.route('/track_radio/<track_id>')
 def track_radio(track_id):
-    track_list(wimp.get_track_radio(track_id))
+    track_list(session.get_track_radio(track_id))
 
 
 @plugin.route('/moods')
 def moods():
-    items = wimp.get_moods()
+    items = session.get_moods()
     view(items, urls_from_id(moods_playlists, items))
 
 
 @plugin.route('/moods/<mood>')
 def moods_playlists(mood):
-    items = wimp.get_mood_playlists(mood)
+    items = session.get_mood_playlists(mood)
     view(items, urls_from_id(playlist_view, items))
 
 
 @plugin.route('/genres')
 def genres():
-    items = wimp.get_genres()
+    items = session.get_genres()
     view(items, urls_from_id(genre_view, items))
 
 
@@ -156,26 +156,26 @@ def genre_view(genre_id):
 
 @plugin.route('/genre/<genre_id>/playlists')
 def genre_playlists(genre_id):
-    items = wimp.get_genre_items(genre_id, 'playlists')
+    items = session.get_genre_items(genre_id, 'playlists')
     view(items, urls_from_id(playlist_view, items))
 
 
 @plugin.route('/genre/<genre_id>/albums')
 def genre_albums(genre_id):
     xbmcplugin.setContent(plugin.handle, 'albums')
-    items = wimp.get_genre_items(genre_id, 'albums')
+    items = session.get_genre_items(genre_id, 'albums')
     view(items, urls_from_id(album_view, items))
 
 
 @plugin.route('/genre/<genre_id>/tracks')
 def genre_tracks(genre_id):
-    items = wimp.get_genre_items(genre_id, 'tracks')
+    items = session.get_genre_items(genre_id, 'tracks')
     track_list(items)
 
 
 @plugin.route('/featured_playlists')
 def featured_playlists():
-    items = wimp.get_featured()
+    items = session.get_featured()
     view(items, urls_from_id(playlist_view, items))
 
 
@@ -189,7 +189,7 @@ def whats_new():
     add_directory('New Tracks', plugin.url_for(featured, group='new', content_type='tracks'))
     add_directory('Top Albums', plugin.url_for(featured, group='top', content_type='albums'))
     add_directory('Top Tracks', plugin.url_for(featured, group='top', content_type='tracks'))
-    if wimp.country_code != 'US':
+    if session.country_code != 'US':
         add_directory('Local Playlists', plugin.url_for(featured, group='local', content_type='playlists'))
         add_directory('Local Albums', plugin.url_for(featured, group='local', content_type='albums'))
         add_directory('Local Tracks', plugin.url_for(featured, group='local', content_type='tracks'))
@@ -198,7 +198,7 @@ def whats_new():
 
 @plugin.route('/featured/<group>/<content_type>')
 def featured(group=None, content_type=None):
-    items = wimp.get_featured_items(content_type, group)
+    items = session.get_featured_items(content_type, group)
     if content_type == 'tracks':
         track_list(items)
     elif content_type == 'albums':
@@ -221,7 +221,7 @@ def my_music():
 @plugin.route('/album/<album_id>')
 def album_view(album_id):
     xbmcplugin.addSortMethod(plugin.handle, xbmcplugin.SORT_METHOD_TRACKNUM)
-    track_list(wimp.get_album_tracks(album_id))
+    track_list(session.get_album_tracks(album_id))
 
 
 @plugin.route('/artist/<artist_id>')
@@ -239,63 +239,63 @@ def artist_view(artist_id):
         plugin.handle, plugin.url_for(similar_artists, artist_id),
         ListItem('Similar Artists'), True
     )
-    albums = wimp.get_artist_albums(artist_id) + \
-             wimp.get_artist_albums_ep_singles(artist_id) + \
-             wimp.get_artist_albums_other(artist_id)
+    albums = session.get_artist_albums(artist_id) + \
+             session.get_artist_albums_ep_singles(artist_id) + \
+             session.get_artist_albums_other(artist_id)
     view(albums, urls_from_id(album_view, albums))
 
 
 @plugin.route('/artist/<artist_id>/radio')
 def artist_radio(artist_id):
-    track_list(wimp.get_artist_radio(artist_id))
+    track_list(session.get_artist_radio(artist_id))
 
 
 @plugin.route('/artist/<artist_id>/top')
 def top_tracks(artist_id):
-    track_list(wimp.get_artist_top_tracks(artist_id))
+    track_list(session.get_artist_top_tracks(artist_id))
 
 
 @plugin.route('/artist/<artist_id>/similar')
 def similar_artists(artist_id):
     xbmcplugin.setContent(plugin.handle, 'artists')
-    artists = wimp.get_artist_similar(artist_id)
+    artists = session.get_artist_similar(artist_id)
     view(artists, urls_from_id(artist_view, artists))
 
 
 @plugin.route('/playlist/<playlist_id>')
 def playlist_view(playlist_id):
-    track_list(wimp.get_playlist_tracks(playlist_id))
+    track_list(session.get_playlist_tracks(playlist_id))
 
 
 @plugin.route('/user_playlists')
 def my_playlists():
-    items = wimp.user.playlists()
+    items = session.user.playlists()
     view(items, urls_from_id(playlist_view, items))
 
 
 @plugin.route('/favourite_playlists')
 def favourite_playlists():
-    items = wimp.user.favorites.playlists()
+    items = session.user.favorites.playlists()
     view(items, urls_from_id(playlist_view, items))
 
 
 @plugin.route('/favourite_artists')
 def favourite_artists():
     xbmcplugin.setContent(plugin.handle, 'artists')
-    items = wimp.user.favorites.artists()
+    items = session.user.favorites.artists()
     view(items, urls_from_id(artist_view, items))
 
 
 @plugin.route('/favourite_albums')
 def favourite_albums():
     xbmcplugin.setContent(plugin.handle, 'albums')
-    items = wimp.user.favorites.albums()
+    items = session.user.favorites.albums()
     view(items, urls_from_id(album_view, items))
 
 
 @plugin.route('/favourite_tracks')
 def favourite_tracks():
-    track_list(wimp.user.favorites.tracks())
+    track_list(session.user.favorites.tracks())
 
 
 @plugin.route('/search')
@@ -314,7 +314,7 @@ def search_type(field):
     if keyboard.isConfirmed():
         keyboardinput = keyboard.getText()
         if keyboardinput:
-            searchresults = wimp.search(field, keyboardinput)
+            searchresults = session.search(field, keyboardinput)
             view(searchresults.artists, urls_from_id(artist_view, searchresults.artists), end=False)
             view(searchresults.albums, urls_from_id(album_view, searchresults.albums), end=False)
             view(searchresults.playlists, urls_from_id(playlist_view, searchresults.playlists), end=False)
@@ -336,10 +336,10 @@ def login():
         if not password:
             return
 
-    if wimp.login(username, password):
-        addon.setSetting('session_id', wimp.session_id)
-        addon.setSetting('country_code', wimp.country_code)
-        addon.setSetting('user_id', unicode(wimp.user.id))
+    if session.login(username, password):
+        addon.setSetting('session_id', session.session_id)
+        addon.setSetting('country_code', session.country_code)
+        addon.setSetting('user_id', unicode(session.user.id))
 
         if not addon.getSetting('username') or not addon.getSetting('password'):
             # Ask about remembering username/password
@@ -357,7 +357,7 @@ def logout():
 
 @plugin.route('/play/<track_id>')
 def play(track_id):
-    media_url = wimp.get_media_url(track_id)
+    media_url = session.get_media_url(track_id)
     if not media_url.startswith('http://') and not media_url.startswith('https://'):
         log("media url: %s" % media_url)
         host, tail = media_url.split('/', 1)
